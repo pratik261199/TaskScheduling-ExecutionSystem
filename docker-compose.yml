@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  # The scheduler service is responsible for running database migrations.
+  scheduler:
+    build:
+      context: ./scheduler_service
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./scheduler_service:/app
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./scheduler_service/.env
+    depends_on:
+      - redis
+
+  # The worker service bypasses the entrypoint script to avoid redundant migrations.
+  worker:
+    build:
+      context: ./scheduler_service
+    # Override the default entrypoint to run celery directly
+    entrypoint: celery
+    command: -A celery_worker.app worker --loglevel=info
+    volumes:
+      - ./scheduler_service:/app
+    env_file:
+      - ./scheduler_service/.env
+    depends_on:
+      - redis
+
+  # The beat service also bypasses the entrypoint script.
+  beat:
+    build:
+      context: ./scheduler_service
+    # Override the default entrypoint to run celery directly
+    entrypoint: celery
+    command: -A celery_worker.app beat --loglevel=info
+    volumes:
+      - ./scheduler_service:/app
+    env_file:
+      - ./scheduler_service/.env
+    depends_on:
+      - redis
+
+  executor:
+    build:
+      context: ./task_executor_service
+    command: uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+    volumes:
+      - ./task_executor_service:/app
+    ports:
+      - "8001:8001"
+    env_file:
+      - ./task_executor_service/.env
+
+networks:
+  default:
+    driver: bridge
