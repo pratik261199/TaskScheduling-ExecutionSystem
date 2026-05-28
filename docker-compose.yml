@@ -6,6 +6,17 @@ services:
     ports:
       - "6379:6379"
 
+  postgres:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+
   scheduler:
     build:
       context: ./scheduler_service
@@ -18,6 +29,7 @@ services:
       - ./scheduler_service/.env
     depends_on:
       - redis
+      - postgres
 
   worker:
     build:
@@ -53,6 +65,11 @@ services:
       - "8001:8001"
     env_file:
       - ./task_executor_service/.env
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
 
 networks:
   default:
