@@ -6,7 +6,6 @@ services:
     ports:
       - "6379:6379"
 
-  # The scheduler service is responsible for running database migrations.
   scheduler:
     build:
       context: ./scheduler_service
@@ -20,11 +19,9 @@ services:
     depends_on:
       - redis
 
-  # The worker service bypasses the entrypoint script to avoid redundant migrations.
   worker:
     build:
       context: ./scheduler_service
-    # Override the default entrypoint to run celery directly
     entrypoint: celery
     command: -A celery_worker.app worker --loglevel=info
     volumes:
@@ -34,11 +31,9 @@ services:
     depends_on:
       - redis
 
-  # The beat service also bypasses the entrypoint script.
   beat:
     build:
       context: ./scheduler_service
-    # Override the default entrypoint to run celery directly
     entrypoint: celery
     command: -A celery_worker.app beat --loglevel=info
     volumes:
