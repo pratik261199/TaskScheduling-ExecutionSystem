@@ -35,7 +35,6 @@ This project is configured to run entirely within Docker containers, managed by 
 
 - Docker
 - Docker Compose
-- PostgreSQL Server
 
 ### Running the Application
 
@@ -62,28 +61,20 @@ This project is configured to run entirely within Docker containers, managed by 
     EXECUTOR_POSTGRES_DB=executor_db
     ```
 
-2.  **Create the Databases (One-Time Setup):**
-    Use the `init-db.sql` script to create the required databases in PostgreSQL.
-    
-    
-    a. Run the initialization script:
-    
-    psql -U postgres -d postgres -f /path/to/init-db.sql
-
-3.  **Start All Services:**
+2. **Start All Services:**
     Navigate to the project root and run the following command. This will build the images and start all containers. Database migrations will be applied automatically on startup.
     ```sh
     docker-compose up --build
     ```
 
-4.  **Interacting with the System:**
+3. **Interacting with the System:**
     - **Scheduler API:** `http://localhost:8000/docs`
     - **Executor API:** `http://localhost:8001/docs`
 
-5.  **Creating a Task:**
+4. **Creating a Task:**
     When creating a task, use the executor's service name (`executor`) in the `webhook_url`, as the services communicate over the Docker network.
     
     **Example `webhook_url`:** `http://executor:8001/api/v1/sync-webhook`
 
-6.  **Stopping the System:**
+5. **Stopping the System:**
     To stop all running containers, press `Ctrl+C` in the terminal where `docker-compose` is running, or run `docker-compose down` from the project root in another terminal.

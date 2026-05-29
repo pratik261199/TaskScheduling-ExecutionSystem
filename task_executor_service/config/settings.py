@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     REDIS_PORT: int = 6379
     
     SCHEDULER_BASE_URL: str = "http://localhost:8000"
-    
+
     DB_POOL_SIZE: int = 5
     DB_MAX_OVERFLOW: int = 10
     HOST_NAME: str = "http://executor"

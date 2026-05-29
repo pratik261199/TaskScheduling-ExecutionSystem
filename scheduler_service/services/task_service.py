@@ -9,6 +9,8 @@ from models.task import TaskDefinition, TaskExecution
 from celery_worker.app import celery_app
 from schemas.task_schemas import TaskCreate, RecurrenceType
 
+from config.settings import settings
+
 logger = logging.getLogger(__name__)
 
 class TaskService:
@@ -113,7 +115,7 @@ class TaskService:
 
         if current_retries < task.definition.max_retries:
             new_retry_count = current_retries + 1
-            backoff_seconds = 60 * (2 ** current_retries)
+            backoff_seconds = settings.EXPONENTIAL_RETRY_FOR_FAILURE_IN_SECONDS * (2 ** current_retries)
             next_attempt_time = datetime.now(timezone.utc) + timedelta(seconds=backoff_seconds)
             
             await self.repo.update_for_retry(task.id, next_attempt_time, new_retry_count)
