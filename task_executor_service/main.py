@@ -1,5 +1,8 @@
 from fastapi import FastAPI
 from api import executor_router
+from logger_config import setup_logging
+
+setup_logging()
 
 app = FastAPI(
     title="Task Executor Service"

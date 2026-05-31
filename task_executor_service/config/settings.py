@@ -3,15 +3,15 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
 
-    EXECUTOR_POSTGRES_USER: str
-    EXECUTOR_POSTGRES_PASSWORD: str
-    EXECUTOR_POSTGRES_HOST: str
-    EXECUTOR_POSTGRES_PORT: int
-    EXECUTOR_POSTGRES_DB: str
+    EXECUTOR_POSTGRES_USER: str = "postgres"
+    EXECUTOR_POSTGRES_PASSWORD: str = "postgres"
+    EXECUTOR_POSTGRES_HOST: str = "postgres"
+    EXECUTOR_POSTGRES_PORT: int = 5432
+    EXECUTOR_POSTGRES_DB: str = "executor_db"
 
-    REDIS_HOST: str = "localhost"
+    REDIS_HOST: str = "redis"
     REDIS_PORT: int = 6379
-    
+
     SCHEDULER_BASE_URL: str = "http://localhost:8000"
 
     DB_POOL_SIZE: int = 5

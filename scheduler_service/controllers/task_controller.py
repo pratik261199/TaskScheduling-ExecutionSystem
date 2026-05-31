@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 from services.task_service import TaskService
-from schemas.task_schemas import TaskCreate, TaskCreateResponse
+from schemas.task_schemas import TaskCreate, TaskCreateResponse, TaskListResponse, TaskDefinitionResponse
 import logging
 logger = logging.getLogger(__name__)
 
@@ -23,3 +23,15 @@ class TaskController:
         except Exception as e:
             logger.error(f"Failed to create task: {e}")
             raise HTTPException(status_code=500, detail="An unexpected error occurred while creating the task.")
+
+    async def get_all_tasks(self) -> TaskListResponse:
+        """
+        Controller logic to get all tasks.
+        """
+        try:
+            tasks = await self.task_service.get_all_tasks()
+            validated_tasks = [TaskDefinitionResponse.model_validate(task) for task in tasks]
+            return TaskListResponse(tasks=validated_tasks)
+        except Exception as e:
+            logger.error(f"Failed to get tasks: {e}")
+            raise HTTPException(status_code=500, detail="An unexpected error occurred while fetching tasks.")

@@ -7,6 +7,7 @@ services:
     command: uvicorn main:app --host 0.0.0.0 --port 8001 --reload
     volumes:
       - .:/app
+      - executor_logs:/app/logs
     ports:
       - "8001:8001"
     env_file:
@@ -24,3 +25,4 @@ services:
 
 volumes:
   postgres_data:
+  executor_logs:

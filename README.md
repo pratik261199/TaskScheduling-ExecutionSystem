@@ -6,7 +6,7 @@ This project implements a production-ready, microservice-oriented backend system
 
 The architecture is designed around a clear separation of concerns, ensuring scalability and maintainability.
 
-![Architecture Diagram](task_scheduler_draw_io.jpg)
+![Architecture Diagram](task_scheduler_drawio_1.jpg)
 
 - **Microservices:** The system is split into two independent services:
   - `scheduler-service`: Responsible for accepting, storing, and scheduling tasks. It uses Celery to manage time-based and recurring jobs.
@@ -44,8 +44,8 @@ This project is configured to run entirely within Docker containers, managed by 
     **`scheduler_service/.env`:**
     ```
     SCHEDULER_POSTGRES_USER=postgres
-    SCHEDULER_POSTGRES_PASSWORD=your_db_password
-    SCHEDULER_POSTGRES_HOST=host.docker.internal
+    SCHEDULER_POSTGRES_PASSWORD=postgres
+    SCHEDULER_POSTGRES_HOST=postgres
     SCHEDULER_POSTGRES_PORT=5432
     SCHEDULER_POSTGRES_DB=scheduler_db
     REDIS_HOST=redis
@@ -55,8 +55,8 @@ This project is configured to run entirely within Docker containers, managed by 
     **`task_executor_service/.env`:**
     ```
     EXECUTOR_POSTGRES_USER=postgres
-    EXECUTOR_POSTGRES_PASSWORD=your_db_password
-    EXECUTOR_POSTGRES_HOST=host.docker.internal
+    EXECUTOR_POSTGRES_PASSWORD=postgres
+    EXECUTOR_POSTGRES_HOST=postgres
     EXECUTOR_POSTGRES_PORT=5432
     EXECUTOR_POSTGRES_DB=executor_db
     ```
@@ -78,3 +78,71 @@ This project is configured to run entirely within Docker containers, managed by 
 
 5. **Stopping the System:**
     To stop all running containers, press `Ctrl+C` in the terminal where `docker-compose` is running, or run `docker-compose down` from the project root in another terminal.
+
+## Manually Testing the application:
+Following Curl commands can be used to create the tasks.
+1. Custom Cron (async-webhook call):
+```
+curl -X 'POST' \
+  'http://0.0.0.0:8000/api/v1/tasks' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "name": "Periodic every minute task",
+  "execution_time": "2026-05-30T20:46:52.371Z",
+  "webhook_url": "http://executor:8001/api/v1/async-webhook",
+  "payload": {
+    "additionalProp1": {}
+  },
+  "recurrence": {
+    "type": "CUSTOM_CRON",
+    "cron": "* * * * *"
+  },
+  "max_retries": 3
+}'
+```
+
+2. Hourly (sync-webhook call):
+```aiexclude
+curl -X 'POST' \
+  'http://0.0.0.0:8000/api/v1/tasks' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "name": "Hourly Scheduled task",
+  "execution_time": "2026-05-30T20:46:52.371Z",
+  "webhook_url": "http://executor:8001/api/v1/sync-webhook",
+  "payload": {
+    "additionalProp1": {
+"id": 121}
+  },
+  "recurrence": {
+    "type": "HOURLY"
+  },
+  "max_retries": 3
+}'
+```
+
+3. Unreachable Destination URL (sync-webhook call)
+
+```aiexclude
+curl -X 'POST' \
+  'http://0.0.0.0:8000/api/v1/tasks' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "name": "Daily Failed Scheduled task",
+  "execution_time": "2026-05-30T20:46:52.371Z",
+  "webhook_url": "http://executors:8001/api/v1/sync-webhook",
+  "payload": {
+    "additionalProp1": {
+"id": 121}
+  },
+  "recurrence": {
+    "type": "DAILY"
+  },
+  "max_retries": 3
+}'
+
+
+```

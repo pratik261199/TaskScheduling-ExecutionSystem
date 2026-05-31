@@ -3,6 +3,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 from croniter import croniter
+from typing import List
 
 from repository.task_scheduler_repository import TaskSchedulerRepository
 from models.task import TaskDefinition, TaskExecution
@@ -36,10 +37,14 @@ class TaskService:
         
         return task_def
 
+    async def get_all_tasks(self) -> List[TaskDefinition]:
+        """Returns all tasks from the repository."""
+        return await self.repo.get_all_tasks()
+
     async def dispatch_due_tasks(self):
         """Fetches pending tasks, calls their webhooks, and handles responses."""
 
-        logger.info("TaskService: Checking for due tasks to dispatch...")
+        logger.info("TaskService: Checking for pending tasks to dispatch.")
         due_tasks = await self.repo.get_due_executions_and_lock(limit=100)
 
         if not due_tasks:
@@ -68,7 +73,7 @@ class TaskService:
                     celery_app.send_task('celery_worker.tasks.poll_webhook_status', args=[task.id])
                 else:
                     await self.repo.update_execution_status(task.id, "FAILED")
-            else: # Synchronous success
+            else:
                 await self.repo.update_execution_status(task.id, "SUCCESS")
                 await self._handle_recurrence(task.definition, task.payload)
 

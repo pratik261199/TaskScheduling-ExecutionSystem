@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from typing import Optional, Dict, Any, List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 from models.task import TaskDefinition, TaskExecution
 
 class TaskSchedulerRepository:
@@ -103,6 +103,13 @@ class TaskSchedulerRepository:
             
             task_execution.task_logs = task_execution.task_logs + [log_message]
             await self.db.commit()
+
+    async def get_all_tasks(self) -> List[TaskDefinition]:
+        """Gets all task definitions with their executions."""
+        result = await self.db.execute(
+            select(TaskDefinition).options(selectinload(TaskDefinition.executions))
+        )
+        return result.scalars().unique().all()
 
     async def get_all_executions(self):
         result = await self.db.execute(select(TaskExecution))

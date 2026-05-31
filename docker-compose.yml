@@ -23,6 +23,7 @@ services:
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
     volumes:
       - ./scheduler_service:/app
+      - scheduler_logs:/app/logs
     ports:
       - "8000:8000"
     env_file:
@@ -38,6 +39,7 @@ services:
     command: -A celery_worker.app worker --loglevel=info
     volumes:
       - ./scheduler_service:/app
+      - scheduler_logs:/app/logs
     env_file:
       - ./scheduler_service/.env
     depends_on:
@@ -50,6 +52,7 @@ services:
     command: -A celery_worker.app beat --loglevel=info
     volumes:
       - ./scheduler_service:/app
+      - scheduler_logs:/app/logs
     env_file:
       - ./scheduler_service/.env
     depends_on:
@@ -61,6 +64,7 @@ services:
     command: uvicorn main:app --host 0.0.0.0 --port 8001 --reload
     volumes:
       - ./task_executor_service:/app
+      - executor_logs:/app/logs
     ports:
       - "8001:8001"
     env_file:
@@ -70,6 +74,8 @@ services:
 
 volumes:
   postgres_data:
+  scheduler_logs:
+  executor_logs:
 
 networks:
   default:
